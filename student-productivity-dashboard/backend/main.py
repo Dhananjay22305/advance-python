@@ -1,6 +1,7 @@
 # main.py
 import logging
 import time 
+import schemas
 
 # 2. Force the logger to use Local Time (Computer time) instead of GMT
 logging.Formatter.converter = time.localtime 
@@ -22,11 +23,16 @@ app = FastAPI()
 # Plug in the "Tasks" power strip
 app.include_router(tasks.router)
 
-@app.get("/health", tags=["System"])
+@app.get("/health", response_model=schemas.APIResponse, tags=["System"])
 def health_check():
-    return {"status": "ok"}
+    return {
+        "success": True,         
+        "message": "System is active",
+        "data": {"status": "ok"} # The actual health info goes inside 'data'
+    }
 
 @app.get("/")
 def home():
     return {"message": "Backend is running with Routers!"}
+
 
