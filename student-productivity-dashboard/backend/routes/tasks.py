@@ -1,44 +1,34 @@
-# routes/tasks.py
-import logging  # <--- Import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 import schemas
 import models
+from datetime import datetime
 
 router = APIRouter()
 
-# 2. Create a "Logger" for this specific file
-logger = logging.getLogger(__name__)
-
-# Fake DB helper
 def get_db():
     return models.tasks_db
 
-@router.get("/tasks", response_model=List[schemas.TaskResponse])
+# GET all tasks
+# Notice response_model is now APIResponse
+@router.get("/tasks", response_model=schemas.APIResponse)
 def get_tasks(db: List = Depends(get_db)):
-    # Log that someone asked for tasks
-    logger.info("Fetching all tasks...") 
-    return db
+    return {
+        "success": True,
+        "message": "Tasks fetched successfully",
+        "data": db  # The list goes inside 'data'
+    }
 
-@router.post("/tasks", response_model=schemas.TaskResponse)
+# CREATE a new task
+@router.post("/tasks", response_model=schemas.APIResponse)
 def create_task(task: schemas.TaskCreate, db: List = Depends(get_db)):
     new_id = len(db) + 1
-    new_task_entry = models.Task(id=new_id, title=task.title)
-    db.append(new_task_entry)
+    new_task = models.Task(id=new_id, title=task.title) # created_at is auto
+    db.append(new_task)
     
-    # Log the action with data
-    logger.info(f"New task created: ID {new_id} - Title: {task.title}")
-    
-    return new_task_entry
-
-@router.put("/tasks/{task_id}", response_model=schemas.TaskResponse)
-def mark_done(task_id: int, db: List = Depends(get_db)):
-    for task in db:
-        if task.id == task_id:
-            task.done = True
-            logger.info(f"Task {task_id} marked as DONE") # <--- Log success
-            return task
-            
-    # Log the failure before crashing
-    logger.error(f"User tried to update non-existent task: {task_id}")
-    raise HTTPException(status_code=404, detail="Task not found")
+    return {
+        "success": True,
+        "message": "Task created successfully",
+        "data": new_task # The single task goes inside 'data'
+    }
