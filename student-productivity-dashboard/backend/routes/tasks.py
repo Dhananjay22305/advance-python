@@ -32,3 +32,11 @@ def create_task(task: schemas.TaskCreate, db: List = Depends(get_db)):
         "message": "Task created successfully",
         "data": new_task # The single task goes inside 'data'
     }
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=500,
+        content={"success": False, "message": "Internal server error"}
+    )
+
